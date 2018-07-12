@@ -39,7 +39,7 @@ function bulkIndex(events, config, urlUtils){
     // Wait one second before starting the bulk index. Though the server.start event is emitted, ghost is not yet fully started
     setTimeout(() => {
       client.findOne({slug: 'ghost-frontend'}, {context: {internal: true}})
-      .then((client) => getContent(urlUtils.urlFor('api', true) + 'posts/?formats=mobiledoc&limit=all&client_id=ghost-frontend&client_secret=' + client.attributes.secret))
+      .then((client) => getContent(urlUtils.urlFor('api', true) + 'posts/?formats=mobiledoc&limit=all&include=authors&client_id=ghost-frontend&client_secret=' + client.attributes.secret))
       .then((data) => {
         let posts = JSON.parse(data).posts;
         if(posts.length > 0) {
