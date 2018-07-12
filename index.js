@@ -17,8 +17,8 @@
 //
 // module.exports = GhostAlgolia;
 
-const converter = require('../../../current/core/server/lib/mobiledoc/converters/markdown-converter'),
-      client = require('../../../current/core/server/models').Client,
+const converter = require('../../../core/server/lib/mobiledoc/converters/markdown-converter'),
+      client = require('../../../core/server/models').Client,
       indexFactory = require('./lib/indexFactory'),
       parserFactory = require('./lib/parserFactory');
 
@@ -36,30 +36,33 @@ function bulkIndex(events, config, urlUtils){
 
   // Emitted in ghost-server.js
   events.on('server.start', function(){
-    client.findOne({slug: 'ghost-frontend'}, {context: {internal: true}})
-    .then((client) => getContent(urlUtils.urlFor('api', true) + 'posts/?formats=mobiledoc&limit=all&client_id=ghost-frontend&client_secret=' + client.attributes.secret))
-    .then((data) => {
-      let posts = JSON.parse(data).posts;
-      if(posts.length > 0) {
-        let index = indexFactory(config);
-        if(index.connect()) {
-          index.countRecords().then((nbRecords) => {
-            if(nbRecords === 0) {
-              let parser = parserFactory(),
-                  nbFragments = 0;
+    // Wait one second before starting the bulk index. Though the server.start event is emitted, ghost is not yet fully started
+    setTimeout(() => {
+      client.findOne({slug: 'ghost-frontend'}, {context: {internal: true}})
+      .then((client) => getContent(urlUtils.urlFor('api', true) + 'posts/?formats=mobiledoc&limit=all&client_id=ghost-frontend&client_secret=' + client.attributes.secret))
+      .then((data) => {
+        let posts = JSON.parse(data).posts;
+        if(posts.length > 0) {
+          let index = indexFactory(config);
+          if(index.connect()) {
+            index.countRecords().then((nbRecords) => {
+              if(nbRecords === 0) {
+                let parser = parserFactory(),
+                    nbFragments = 0;
 
-              posts.forEach((post) => {
-                post.attributes = post; // compatibility with posts returned internally in events (below)
-                nbFragments += parser.parse(post, index);
-              });
-              if(nbFragments) { index.save(); }
-            }
-          })
-          .catch((err) => console.error(err));
+                posts.forEach((post) => {
+                  post.attributes = post; // compatibility with posts returned internally in events (below)
+                  nbFragments += parser.parse(post, index);
+                });
+                if(nbFragments) { index.save(); }
+              }
+            })
+            .catch((err) => console.error(err));
+          }
         }
-      }
-    })
-    .catch((err) => console.error(err));
+      })
+      .catch((err) => console.error(err));
+    }, 1000);
   });
 }
 
