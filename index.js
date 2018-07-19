@@ -105,9 +105,10 @@ function registerEvents(events, config){
   // is of no concern as they never made it to the index.
   events.on('post.unpublished', function(post) {
     let index = indexFactory(config);
+    const postTitle = post.attributes.title || post._previousAttributes.title;
     if(index.connect()) {
       index.delete(post)
-      .then(() => { console.log('GhostAlgolia: post "' + post.attributes.title + '" has been removed from the index.'); })
+      .then(() => { console.log('GhostAlgolia: post "' + postTitle + '" has been removed from the index.'); })
       .catch((err) => console.log(err));
     };
   });
