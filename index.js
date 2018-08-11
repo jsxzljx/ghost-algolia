@@ -17,8 +17,8 @@
 //
 // module.exports = GhostAlgolia;
 
-const converter = require('../../../core/server/lib/mobiledoc/converters/markdown-converter'),
-      client = require('../../../core/server/models').Client,
+const converter = require('../../../current/core/server/lib/mobiledoc/converters/markdown-converter'),
+      client = require('../../../current/core/server/models').Client,
       indexFactory = require('./lib/indexFactory'),
       parserFactory = require('./lib/parserFactory');
 
